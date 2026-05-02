@@ -5,847 +5,204 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>J.A.R.V.I.S.</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
-
-  :root {
-    --arc: #00d4ff;
-    --arc-dim: #007a99;
-    --arc-glow: rgba(0,212,255,0.4);
-    --red: #ff3c3c;
-    --gold: #ffcc00;
-    --bg: #020c14;
-    --panel: rgba(0,20,35,0.85);
-    --text: #a8e6f0;
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-
-  body {
-    background: var(--bg);
-    font-family: 'Share Tech Mono', monospace;
-    color: var(--text);
-    height: 100dvh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-
-  /* Animated background grid */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    animation: gridMove 20s linear infinite;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  @keyframes gridMove {
-    0% { background-position: 0 0, 0 0; }
-    100% { background-position: 40px 40px, 40px 40px; }
-  }
-
-  /* Scan line */
-  body::after {
-    content: '';
-    position: fixed;
-    top: -100%;
-    left: 0; right: 0;
-    height: 60px;
-    background: linear-gradient(transparent, rgba(0,212,255,0.06), transparent);
-    animation: scan 6s linear infinite;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  @keyframes scan { to { top: 200%; } }
-
-  /* TOP STATUS BAR */
-  .statusbar {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 16px 6px;
-    border-bottom: 1px solid rgba(0,212,255,0.15);
-    background: rgba(0,5,12,0.7);
-    backdrop-filter: blur(10px);
-  }
-
-  .logo {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 13px;
-    font-weight: 900;
-    letter-spacing: 4px;
-    color: var(--arc);
-    text-shadow: 0 0 20px var(--arc-glow), 0 0 40px var(--arc-glow);
-  }
-
-  .status-indicators {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    font-size: 10px;
-    color: var(--arc-dim);
-    letter-spacing: 1px;
-  }
-
-  .dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--arc);
-    box-shadow: 0 0 8px var(--arc);
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%,100% { opacity:1; } 50% { opacity:0.3; }
-  }
-
-  /* ARC REACTOR */
-  .arc-container {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 16px 0 8px;
-  }
-
-  .arc-reactor {
-    position: relative;
-    width: 90px;
-    height: 90px;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-
-  .arc-reactor:active { transform: scale(0.95); }
-
-  .arc-ring {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 2px solid transparent;
-  }
-
-  .arc-ring-1 {
-    border-color: var(--arc);
-    box-shadow: 0 0 15px var(--arc-glow), inset 0 0 15px var(--arc-glow);
-    animation: spin 8s linear infinite;
-  }
-
-  .arc-ring-2 {
-    inset: 8px;
-    border-color: rgba(0,212,255,0.5);
-    animation: spin 5s linear infinite reverse;
-  }
-
-  .arc-ring-3 {
-    inset: 18px;
-    border: 1px solid rgba(0,212,255,0.3);
-    animation: spin 3s linear infinite;
-  }
-
-  .arc-core {
-    position: absolute;
-    inset: 24px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #fff 0%, var(--arc) 30%, rgba(0,100,180,0.8) 70%, transparent 100%);
-    box-shadow: 0 0 30px var(--arc), 0 0 60px var(--arc-glow);
-    animation: coreBreath 3s ease-in-out infinite;
-  }
-
-  @keyframes coreBreath {
-    0%,100% { box-shadow: 0 0 30px var(--arc), 0 0 60px var(--arc-glow); }
-    50% { box-shadow: 0 0 50px var(--arc), 0 0 100px var(--arc-glow), 0 0 150px rgba(0,212,255,0.2); }
-  }
-
-  .arc-segments {
-    position: absolute;
-    inset: 10px;
-    border-radius: 50%;
-  }
-
-  .arc-segment {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-  }
-
-  .arc-segment::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 2px;
-    height: 10px;
-    background: var(--arc);
-    box-shadow: 0 0 8px var(--arc);
-  }
-
-  .arc-segment:nth-child(1) { transform: rotate(0deg); }
-  .arc-segment:nth-child(2) { transform: rotate(45deg); }
-  .arc-segment:nth-child(3) { transform: rotate(90deg); }
-  .arc-segment:nth-child(4) { transform: rotate(135deg); }
-  .arc-segment:nth-child(5) { transform: rotate(180deg); }
-  .arc-segment:nth-child(6) { transform: rotate(225deg); }
-  .arc-segment:nth-child(7) { transform: rotate(270deg); }
-  .arc-segment:nth-child(8) { transform: rotate(315deg); }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* WAVEFORM */
-  .waveform {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 3px;
-    height: 36px;
-    padding: 0 24px;
-  }
-
-  .wave-bar {
-    width: 3px;
-    background: var(--arc);
-    border-radius: 2px;
-    box-shadow: 0 0 6px var(--arc-glow);
-    transition: height 0.1s ease;
-    height: 4px;
-  }
-
-  .wave-bar.active {
-    animation: waveAnim 0.5s ease-in-out infinite alternate;
-  }
-
-  @keyframes waveAnim {
-    from { height: 4px; }
-    to { height: var(--h, 30px); }
-  }
-
-  /* CHAT AREA */
-  .chat-area {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 12px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    position: relative;
-    z-index: 10;
-    scrollbar-width: thin;
-    scrollbar-color: var(--arc-dim) transparent;
-  }
-
-  .chat-area::-webkit-scrollbar { width: 3px; }
-  .chat-area::-webkit-scrollbar-thumb { background: var(--arc-dim); border-radius: 2px; }
-
-  .msg {
-    display: flex;
-    flex-direction: column;
-    max-width: 88%;
-    animation: msgIn 0.3s ease;
-  }
-
-  @keyframes msgIn {
-    from { opacity:0; transform: translateY(10px); }
-    to { opacity:1; transform: translateY(0); }
-  }
-
-  .msg.user { align-self: flex-end; align-items: flex-end; }
-  .msg.jarvis { align-self: flex-start; align-items: flex-start; }
-
-  .msg-label {
-    font-size: 9px;
-    letter-spacing: 2px;
-    margin-bottom: 4px;
-    opacity: 0.6;
-  }
-
-  .msg.user .msg-label { color: var(--gold); }
-  .msg.jarvis .msg-label { color: var(--arc); }
-
-  .msg-bubble {
-    padding: 10px 14px;
-    border-radius: 2px;
-    font-size: 13px;
-    line-height: 1.6;
-    position: relative;
-  }
-
-  .msg.user .msg-bubble {
-    background: rgba(255,200,0,0.08);
-    border: 1px solid rgba(255,200,0,0.25);
-    color: #ffe08a;
-    border-radius: 12px 2px 12px 12px;
-  }
-
-  .msg.jarvis .msg-bubble {
-    background: rgba(0,212,255,0.06);
-    border: 1px solid rgba(0,212,255,0.2);
-    color: var(--text);
-    border-radius: 2px 12px 12px 12px;
-  }
-
-  .msg.jarvis .msg-bubble::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, var(--arc), transparent);
-    opacity: 0.5;
-  }
-
-  /* TYPING INDICATOR */
-  .typing-dots {
-    display: flex;
-    gap: 5px;
-    padding: 12px 16px;
-    align-items: center;
-  }
-
-  .typing-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--arc);
-    animation: typingBounce 1.2s ease-in-out infinite;
-  }
-
-  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-  @keyframes typingBounce {
-    0%,80%,100% { transform: scale(0.6); opacity:0.3; }
-    40% { transform: scale(1); opacity:1; }
-  }
-
-  /* BOTTOM CONTROLS */
-  .bottom-panel {
-    position: relative;
-    z-index: 10;
-    background: rgba(0,5,12,0.85);
-    backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(0,212,255,0.15);
-    padding: 10px 14px 14px;
-  }
-
-  .input-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-
-  .text-input {
-    flex: 1;
-    background: rgba(0,212,255,0.05);
-    border: 1px solid rgba(0,212,255,0.25);
-    border-radius: 4px;
-    padding: 10px 14px;
-    color: var(--text);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 13px;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    -webkit-appearance: none;
-  }
-
-  .text-input:focus {
-    border-color: var(--arc);
-    box-shadow: 0 0 12px rgba(0,212,255,0.2);
-  }
-
-  .text-input::placeholder { color: rgba(168,230,240,0.3); }
-
-  .btn {
-    padding: 10px 14px;
-    border: 1px solid var(--arc);
-    background: rgba(0,212,255,0.08);
-    color: var(--arc);
-    font-family: 'Orbitron', sans-serif;
-    font-size: 10px;
-    letter-spacing: 1px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-
-  .btn:active {
-    background: rgba(0,212,255,0.25);
-    box-shadow: 0 0 20px var(--arc-glow);
-    transform: scale(0.97);
-  }
-
-  .btn.mic {
-    border-color: var(--red);
-    color: var(--red);
-    background: rgba(255,60,60,0.08);
-    font-size: 16px;
-    padding: 10px 16px;
-  }
-
-  .btn.mic.listening {
-    border-color: var(--red);
-    color: #fff;
-    background: rgba(255,60,60,0.3);
-    box-shadow: 0 0 20px rgba(255,60,60,0.5);
-    animation: micPulse 1s ease-in-out infinite;
-  }
-
-  @keyframes micPulse {
-    0%,100% { box-shadow: 0 0 20px rgba(255,60,60,0.5); }
-    50% { box-shadow: 0 0 40px rgba(255,60,60,0.8); }
-  }
-
-  .quick-cmds {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding-bottom: 2px;
-  }
-
-  .quick-cmds::-webkit-scrollbar { display: none; }
-
-  .qcmd {
-    white-space: nowrap;
-    padding: 5px 10px;
-    border: 1px solid rgba(0,212,255,0.2);
-    border-radius: 20px;
-    font-size: 11px;
-    color: rgba(168,230,240,0.7);
-    cursor: pointer;
-    transition: all 0.2s;
-    flex-shrink: 0;
-    background: rgba(0,212,255,0.03);
-  }
-
-  .qcmd:active {
-    border-color: var(--arc);
-    color: var(--arc);
-    background: rgba(0,212,255,0.1);
-  }
-
-  /* CORNER DECORATIONS */
-  .corner {
-    position: fixed;
-    width: 30px; height: 30px;
-    z-index: 5;
-    pointer-events: none;
-  }
-
-  .corner::before, .corner::after {
-    content: '';
-    position: absolute;
-    background: var(--arc);
-    box-shadow: 0 0 8px var(--arc);
-  }
-
-  .corner::before { width: 100%; height: 1px; }
-  .corner::after { width: 1px; height: 100%; }
-
-  .corner.tl { top: 60px; left: 0; }
-  .corner.tr { top: 60px; right: 0; transform: scaleX(-1); }
-  .corner.bl { bottom: 0; left: 0; transform: scaleY(-1); }
-  .corner.br { bottom: 0; right: 0; transform: scale(-1); }
-
-  /* SYSTEM READOUT */
-  .sys-readout {
-    position: fixed;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 5;
-    pointer-events: none;
-  }
-
-  .readout-item {
-    font-size: 8px;
-    color: rgba(0,212,255,0.25);
-    letter-spacing: 1px;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-  }
-
-  /* STARK LOGO WATERMARK */
-  .watermark {
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: 'Orbitron', sans-serif;
-    font-size: 9px;
-    letter-spacing: 6px;
-    color: rgba(0,212,255,0.04);
-    z-index: 1;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-
-  /* MODE INDICATOR */
-  .mode-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--arc-dim);
-    padding: 2px 8px;
-    border: 1px solid rgba(0,212,255,0.1);
-    border-radius: 2px;
-  }
-
-  .mode-badge .dot { width: 4px; height: 4px; }
-
-  /* WELCOME MSG */
-  .welcome {
-    text-align: center;
-    padding: 20px 20px 10px;
-    color: rgba(168,230,240,0.4);
-    font-size: 11px;
-    line-height: 1.8;
-    letter-spacing: 1px;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+:root{--arc:#00d4ff;--arc-dim:#007a99;--arc-glow:rgba(0,212,255,0.4);--red:#ff3c3c;--gold:#ffcc00;--bg:#020c14;--text:#a8e6f0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);font-family:'Share Tech Mono',monospace;color:var(--text);height:100dvh;overflow:hidden;display:flex;flex-direction:column;position:relative;user-select:none;-webkit-user-select:none}
+body::before{content:'';position:fixed;inset:0;background:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;animation:gridMove 20s linear infinite;pointer-events:none;z-index:0}
+@keyframes gridMove{0%{background-position:0 0,0 0}100%{background-position:40px 40px,40px 40px}}
+body::after{content:'';position:fixed;top:-100%;left:0;right:0;height:60px;background:linear-gradient(transparent,rgba(0,212,255,0.06),transparent);animation:scan 6s linear infinite;pointer-events:none;z-index:0}
+@keyframes scan{to{top:200%}}
+.statusbar{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:10px 16px 6px;border-bottom:1px solid rgba(0,212,255,0.15);background:rgba(0,5,12,0.7);backdrop-filter:blur(10px)}
+.logo{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:4px;color:var(--arc);text-shadow:0 0 20px var(--arc-glow),0 0 40px var(--arc-glow)}
+.status-indicators{display:flex;gap:10px;align-items:center;font-size:10px;color:var(--arc-dim);letter-spacing:1px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--arc);box-shadow:0 0 8px var(--arc);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.arc-container{position:relative;z-index:10;display:flex;justify-content:center;align-items:center;padding:16px 0 8px}
+.arc-reactor{position:relative;width:90px;height:90px;cursor:pointer;transition:transform 0.2s}
+.arc-reactor:active{transform:scale(0.95)}
+.arc-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent}
+.arc-ring-1{border-color:var(--arc);box-shadow:0 0 15px var(--arc-glow),inset 0 0 15px var(--arc-glow);animation:spin 8s linear infinite}
+.arc-ring-2{inset:8px;border-color:rgba(0,212,255,0.5);animation:spin 5s linear infinite reverse}
+.arc-ring-3{inset:18px;border:1px solid rgba(0,212,255,0.3);animation:spin 3s linear infinite}
+.arc-core{position:absolute;inset:24px;border-radius:50%;background:radial-gradient(circle,#fff 0%,var(--arc) 30%,rgba(0,100,180,0.8) 70%,transparent 100%);box-shadow:0 0 30px var(--arc),0 0 60px var(--arc-glow);animation:coreBreath 3s ease-in-out infinite}
+@keyframes coreBreath{0%,100%{box-shadow:0 0 30px var(--arc),0 0 60px var(--arc-glow)}50%{box-shadow:0 0 50px var(--arc),0 0 100px var(--arc-glow)}}
+.arc-segments{position:absolute;inset:10px;border-radius:50%}
+.arc-segment{position:absolute;width:100%;height:100%;border-radius:50%}
+.arc-segment::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:2px;height:10px;background:var(--arc);box-shadow:0 0 8px var(--arc)}
+.arc-segment:nth-child(1){transform:rotate(0deg)}.arc-segment:nth-child(2){transform:rotate(45deg)}.arc-segment:nth-child(3){transform:rotate(90deg)}.arc-segment:nth-child(4){transform:rotate(135deg)}.arc-segment:nth-child(5){transform:rotate(180deg)}.arc-segment:nth-child(6){transform:rotate(225deg)}.arc-segment:nth-child(7){transform:rotate(270deg)}.arc-segment:nth-child(8){transform:rotate(315deg)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.waveform{position:relative;z-index:10;display:flex;justify-content:center;align-items:center;gap:3px;height:36px;padding:0 24px}
+.wave-bar{width:3px;background:var(--arc);border-radius:2px;box-shadow:0 0 6px var(--arc-glow);height:4px;transition:height 0.15s ease}
+.chat-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 14px;display:flex;flex-direction:column;gap:12px;position:relative;z-index:10;scrollbar-width:thin;scrollbar-color:var(--arc-dim) transparent}
+.chat-area::-webkit-scrollbar{width:3px}
+.chat-area::-webkit-scrollbar-thumb{background:var(--arc-dim);border-radius:2px}
+.msg{display:flex;flex-direction:column;max-width:88%;animation:msgIn 0.3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.msg.jarvis{align-self:flex-start;align-items:flex-start}
+.msg-label{font-size:9px;letter-spacing:2px;margin-bottom:4px;opacity:0.6}
+.msg.user .msg-label{color:var(--gold)}
+.msg.jarvis .msg-label{color:var(--arc)}
+.msg-bubble{padding:10px 14px;border-radius:2px;font-size:13px;line-height:1.6;position:relative}
+.msg.user .msg-bubble{background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.25);color:#ffe08a;border-radius:12px 2px 12px 12px}
+.msg.jarvis .msg-bubble{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);color:var(--text);border-radius:2px 12px 12px 12px}
+.typing-dots{display:flex;gap:5px;padding:12px 16px;align-items:center}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--arc);animation:typingBounce 1.2s ease-in-out infinite}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes typingBounce{0%,80%,100%{transform:scale(0.6);opacity:0.3}40%{transform:scale(1);opacity:1}}
+.bottom-panel{position:relative;z-index:10;background:rgba(0,5,12,0.85);backdrop-filter:blur(12px);border-top:1px solid rgba(0,212,255,0.15);padding:10px 14px 14px}
+.input-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.text-input{flex:1;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.25);border-radius:4px;padding:10px 14px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;outline:none;transition:border-color 0.2s;-webkit-appearance:none}
+.text-input:focus{border-color:var(--arc);box-shadow:0 0 12px rgba(0,212,255,0.2)}
+.text-input::placeholder{color:rgba(168,230,240,0.3)}
+.btn{padding:10px 14px;border:1px solid var(--arc);background:rgba(0,212,255,0.08);color:var(--arc);font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:1px;border-radius:4px;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.btn:active{background:rgba(0,212,255,0.25);box-shadow:0 0 20px var(--arc-glow);transform:scale(0.97)}
+.btn.mic{border-color:var(--red);color:var(--red);background:rgba(255,60,60,0.08);font-size:16px;padding:10px 16px}
+.btn.mic.listening{color:#fff;background:rgba(255,60,60,0.3);box-shadow:0 0 20px rgba(255,60,60,0.5);animation:micPulse 1s ease-in-out infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 20px rgba(255,60,60,0.5)}50%{box-shadow:0 0 40px rgba(255,60,60,0.8)}}
+.quick-cmds{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.quick-cmds::-webkit-scrollbar{display:none}
+.qcmd{white-space:nowrap;padding:5px 10px;border:1px solid rgba(0,212,255,0.2);border-radius:20px;font-size:11px;color:rgba(168,230,240,0.7);cursor:pointer;transition:all 0.2s;flex-shrink:0;background:rgba(0,212,255,0.03)}
+.qcmd:active{border-color:var(--arc);color:var(--arc);background:rgba(0,212,255,0.1)}
+.corner{position:fixed;width:30px;height:30px;z-index:5;pointer-events:none}
+.corner::before,.corner::after{content:'';position:absolute;background:var(--arc);box-shadow:0 0 8px var(--arc)}
+.corner::before{width:100%;height:1px}
+.corner::after{width:1px;height:100%}
+.corner.tl{top:60px;left:0}.corner.tr{top:60px;right:0;transform:scaleX(-1)}.corner.bl{bottom:0;left:0;transform:scaleY(-1)}.corner.br{bottom:0;right:0;transform:scale(-1)}
+.watermark{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:6px;color:rgba(0,212,255,0.04);z-index:1;pointer-events:none;white-space:nowrap}
+.welcome{text-align:center;padding:20px 20px 10px;color:rgba(168,230,240,0.4);font-size:11px;line-height:1.8;letter-spacing:1px}
 </style>
 </head>
 <body>
-
-<!-- Corner decorations -->
-<div class="corner tl"></div>
-<div class="corner tr"></div>
-<div class="corner bl"></div>
-<div class="corner br"></div>
+<div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
 <div class="watermark">STARK INDUSTRIES // CLASSIFIED</div>
-
-<!-- Status Bar -->
 <div class="statusbar">
   <div class="logo">J.A.R.V.I.S.</div>
-  <div class="status-indicators">
-    <span class="mode-badge"><span class="dot"></span>ONLINE</span>
-    <span id="clock">--:--</span>
-  </div>
+  <div class="status-indicators"><span style="display:flex;align-items:center;gap:5px;font-size:9px;letter-spacing:2px;color:var(--arc-dim);padding:2px 8px;border:1px solid rgba(0,212,255,0.1);border-radius:2px"><span class="dot"></span>ONLINE</span><span id="clock">--:--</span></div>
 </div>
-
-<!-- Arc Reactor -->
-<div class="arc-container">
-  <div class="arc-reactor" id="arcBtn" title="Mikrofon">
-    <div class="arc-ring arc-ring-1"></div>
-    <div class="arc-ring arc-ring-2"></div>
-    <div class="arc-ring arc-ring-3"></div>
-    <div class="arc-segments">
-      <div class="arc-segment"></div><div class="arc-segment"></div>
-      <div class="arc-segment"></div><div class="arc-segment"></div>
-      <div class="arc-segment"></div><div class="arc-segment"></div>
-      <div class="arc-segment"></div><div class="arc-segment"></div>
-    </div>
-    <div class="arc-core"></div>
-  </div>
-</div>
-
-<!-- Waveform -->
+<div class="arc-container"><div class="arc-reactor" id="arcBtn"><div class="arc-ring arc-ring-1"></div><div class="arc-ring arc-ring-2"></div><div class="arc-ring arc-ring-3"></div><div class="arc-segments"><div class="arc-segment"></div><div class="arc-segment"></div><div class="arc-segment"></div><div class="arc-segment"></div><div class="arc-segment"></div><div class="arc-segment"></div><div class="arc-segment"></div><div class="arc-segment"></div></div><div class="arc-core"></div></div></div>
 <div class="waveform" id="waveform"></div>
-
-<!-- Chat -->
-<div class="chat-area" id="chatArea">
-  <div class="welcome">
-    ◈ STARK ENDÜSTRİLERİ GÜVENLİ SİSTEMİ ◈<br>
-    J.A.R.V.I.S. v7.4.1 — HOŞGELDİNİZ<br>
-    <span style="color:rgba(0,212,255,0.5)">Arc reaktörü veya mikrofon düğmesine basarak başlayın</span>
-  </div>
-</div>
-
-<!-- Bottom Panel -->
+<div class="chat-area" id="chatArea"><div class="welcome">◈ STARK ENDÜSTRİLERİ GÜVENLİ SİSTEMİ ◈<br>J.A.R.V.I.S. v7.4.1 — HOŞGELDİNİZ<br><span style="color:rgba(0,212,255,0.5)">Arc reaktörü veya mikrofon düğmesine basarak başlayın</span></div></div>
 <div class="bottom-panel">
-  <div class="input-row">
-    <input type="text" class="text-input" id="textInput" placeholder="Komut girin..." autocomplete="off" autocorrect="off" spellcheck="false">
-    <button class="btn" onclick="sendText()">GÖNDER</button>
-    <button class="btn mic" id="micBtn" onclick="toggleMic()">🎙</button>
-  </div>
-  <div class="quick-cmds">
-    <div class="qcmd" onclick="quickCmd('Kendini tanıt')">Kendini tanıt</div>
-    <div class="qcmd" onclick="quickCmd('Hava durumu ne?')">Hava durumu</div>
-    <div class="qcmd" onclick="quickCmd('Güncel haberleri özetle')">Haberler</div>
-    <div class="qcmd" onclick="quickCmd('Sistem durumunu kontrol et')">Sistem durumu</div>
-    <div class="qcmd" onclick="quickCmd('Bana bir şaka anlat')">Şaka anlat</div>
-    <div class="qcmd" onclick="quickCmd('Güç seviyeleri nedir?')">Güç seviyeleri</div>
-  </div>
+  <div class="input-row"><input type="text" class="text-input" id="textInput" placeholder="Komut girin..." autocomplete="off" autocorrect="off" spellcheck="false"><button class="btn" onclick="sendText()">GÖNDER</button><button class="btn mic" id="micBtn" onclick="toggleMic()">🎙</button></div>
+  <div class="quick-cmds"><div class="qcmd" onclick="quickCmd('Kendini tanıt')">Kendini tanıt</div><div class="qcmd" onclick="quickCmd('Hava durumu ne?')">Hava durumu</div><div class="qcmd" onclick="quickCmd('Güncel haberleri özetle')">Haberler</div><div class="qcmd" onclick="quickCmd('Sistem durumunu kontrol et')">Sistem durumu</div><div class="qcmd" onclick="quickCmd('Bana bir şaka anlat')">Şaka anlat</div><div class="qcmd" onclick="quickCmd('Güç seviyeleri nedir?')">Güç seviyeleri</div></div>
 </div>
-
 <script>
-// ==================== CLOCK ====================
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent =
-    String(now.getHours()).padStart(2,'0') + ':' +
-    String(now.getMinutes()).padStart(2,'0');
-}
-updateClock();
-setInterval(updateClock, 1000);
+// Clock
+function updateClock(){const n=new Date();document.getElementById('clock').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')}
+updateClock();setInterval(updateClock,1000);
 
-// ==================== WAVEFORM ====================
-const waveform = document.getElementById('waveform');
-const BARS = 32;
-for(let i=0;i<BARS;i++){
-  const b = document.createElement('div');
-  b.className = 'wave-bar';
-  b.style.setProperty('--h', Math.random()*26+4+'px');
-  waveform.appendChild(b);
-}
-
+// Waveform
+const waveform=document.getElementById('waveform');
+const BARS=32;const waveBars=[];
+for(let i=0;i<BARS;i++){const b=document.createElement('div');b.className='wave-bar';waveform.appendChild(b);waveBars.push(b)}
+let waveInterval=null;
 function animateWave(active){
-  document.querySelectorAll('.wave-bar').forEach(b=>{
-    if(active){
-      b.classList.add('active');
-      b.style.setProperty('--h', Math.random()*26+4+'px');
-      b.style.animationDelay = Math.random()*0.4+'s';
-    } else {
-      b.classList.remove('active');
-      b.style.height = '4px';
-    }
-  });
+  if(active){
+    if(waveInterval)return;
+    waveInterval=setInterval(()=>{waveBars.forEach(b=>{b.style.height=Math.random()*28+4+'px'})},120);
+  }else{
+    clearInterval(waveInterval);waveInterval=null;
+    waveBars.forEach(b=>{b.style.height='4px'});
+  }
 }
 
-// ==================== CHAT ====================
-const chatArea = document.getElementById('chatArea');
-let conversationHistory = []; // Gemini format: {role, parts}
+// Chat
+const chatArea=document.getElementById('chatArea');
+let conversationHistory=[];
 
-function addMessage(role, text) {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'msg ' + role;
-
-  const label = document.createElement('div');
-  label.className = 'msg-label';
-  label.textContent = role === 'user' ? '◈ STARK' : '◈ J.A.R.V.I.S.';
-  wrapper.appendChild(label);
-
-  const bubble = document.createElement('div');
-  bubble.className = 'msg-bubble';
-  bubble.textContent = text;
-  wrapper.appendChild(bubble);
-
-  chatArea.appendChild(wrapper);
-  chatArea.scrollTop = chatArea.scrollHeight;
-  return bubble;
+function addMessage(role,text){
+  const w=document.createElement('div');w.className='msg '+role;
+  const l=document.createElement('div');l.className='msg-label';l.textContent=role==='user'?'◈ STARK':'◈ J.A.R.V.I.S.';w.appendChild(l);
+  const b=document.createElement('div');b.className='msg-bubble';b.textContent=text;w.appendChild(b);
+  chatArea.appendChild(w);chatArea.scrollTop=chatArea.scrollHeight;return b;
 }
 
-function showTyping() {
-  const div = document.createElement('div');
-  div.className = 'msg jarvis';
-  div.id = 'typingIndicator';
-
-  const label = document.createElement('div');
-  label.className = 'msg-label';
-  label.textContent = '◈ J.A.R.V.I.S.';
-  div.appendChild(label);
-
-  const dots = document.createElement('div');
-  dots.className = 'typing-dots';
-  dots.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
-  div.appendChild(dots);
-  chatArea.appendChild(div);
-  chatArea.scrollTop = chatArea.scrollHeight;
+function showTyping(){
+  const d=document.createElement('div');d.className='msg jarvis';d.id='typingIndicator';
+  const l=document.createElement('div');l.className='msg-label';l.textContent='◈ J.A.R.V.I.S.';d.appendChild(l);
+  const dots=document.createElement('div');dots.className='typing-dots';
+  dots.innerHTML='<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+  d.appendChild(dots);chatArea.appendChild(d);chatArea.scrollTop=chatArea.scrollHeight;
 }
+function hideTyping(){const t=document.getElementById('typingIndicator');if(t)t.remove();}
 
-function hideTyping() {
-  const t = document.getElementById('typingIndicator');
-  if(t) t.remove();
-}
+// API
+const GEMINI_KEY="AIzaSyDSiaCd-l3H4RIwXC7c5w9VtmhsJwqqC-s";
+const SYSTEM=`Sen J.A.R.V.I.S.'sin (Just A Rather Very Intelligent System) — Tony Stark'ın yapay zeka asistanı. Türkçe konuş. Sofistike, zeki, hafif nükteli bir asistan gibi davran. "Bay Stark" veya "Efendim" hitabını kullan. Kısa ve öz cevaplar ver (2-4 cümle). Bazen sistem verileri ekle (Güç seviyesi: %94 gibi). JARVIS kişiliğini koru.`;
 
-// ==================== API ====================
-const SYSTEM_PROMPT = `Sen J.A.R.V.I.S.'sin (Just A Rather Very Intelligent System) — Tony Stark'ın geliştirdiği gelişmiş yapay zeka asistanı.
-
-KİŞİLİK:
-- Sofistike, zeki ve hafif nükteli İngiliz aksanlı bir asistan gibi davran (ama Türkçe konuş)
-- "Efendim", "Bay Stark" gibi hitaplar kullan
-- Analitik, verimli ama bazen ince bir mizah ekle
-- Komplex hesaplamaları saniyeler içinde yapabilirsin
-- Sistemleri izliyorsun, tehdit analizi yapabiliyorsun
-- Iron Man zırhıyla entegre çalışıyorsun
-
-YETENEKLER (senaryoya göre rol yap):
-- Ortam taraması ve tehdit analizi
-- Sistem kontrolü (ışıklar, güvenlik, kapılar)
-- Hava durumu ve güncel bilgiler (web araması yap)
-- Hesaplama ve analiz
-- Taktiksel değerlendirme
-- Zırh diagnostiği
-
-KONUŞMA STİLİ:
-- Kısa ve öz cevaplar ver (2-4 cümle genellikle yeterli)
-- Bazen sistem verileri ekle (örn. "Güç seviyesi: %94", "Tehdit tespit edilmedi")
-- Kullanıcıya "Bay Stark" veya bağlama göre uygun hitap kullan
-- Türkçe konuş her zaman`;
-
-const GEMINI_API_KEY = "AIzaSyDSiaCd-l3H4RIwXC7c5w9VtmhsJwqqC-s";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-async function callJarvis(userMessage) {
-  conversationHistory.push({ role: "user", parts: [{ text: userMessage }] });
-
-  const recentHistory = conversationHistory.slice(-10);
-
-  const response = await fetch(GEMINI_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents: recentHistory,
-      generationConfig: { maxOutputTokens: 800, temperature: 0.8 }
+async function callJarvis(msg){
+  conversationHistory.push({role:"user",parts:[{text:msg}]});
+  const history=conversationHistory.slice(-8);
+  
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_KEY}`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      system_instruction:{parts:[{text:SYSTEM}]},
+      contents:history,
+      generationConfig:{maxOutputTokens:300,temperature:0.9}
     })
   });
-
-  const data = await response.json();
-
-  if (!data.candidates || !data.candidates[0]) {
-    throw new Error("No response");
-  }
-
-  const assistantText = data.candidates[0].content.parts[0].text || "Sistem yanıt veremiyor, Bay Stark.";
-  conversationHistory.push({ role: "model", parts: [{ text: assistantText }] });
-  return assistantText;
+  
+  const data=await res.json();
+  if(!res.ok){console.error(data);throw new Error(data.error?.message||"API Hatası");}
+  const text=data.candidates?.[0]?.content?.parts?.[0]?.text||"Sistem yanıt veremiyor, Bay Stark.";
+  conversationHistory.push({role:"model",parts:[{text}]});
+  return text;
 }
 
-// ==================== SEND ====================
-let isBusy = false;
-
-async function sendMessage(text) {
-  if (!text.trim() || isBusy) return;
-  isBusy = true;
-  animateWave(true);
-
-  addMessage('user', text);
-  showTyping();
-
-  try {
-    const reply = await callJarvis(text);
-    hideTyping();
-    const bubble = addMessage('jarvis', reply);
-    speakText(reply);
-  } catch(e) {
-    hideTyping();
-    addMessage('jarvis', 'Sistem hatası tespit edildi. Bağlantı kontrol ediliyor, Bay Stark.');
+let isBusy=false;
+async function sendMessage(text){
+  if(!text.trim()||isBusy)return;
+  isBusy=true;animateWave(true);
+  addMessage('user',text);showTyping();
+  try{
+    const reply=await callJarvis(text);
+    hideTyping();addMessage('jarvis',reply);speakText(reply);
+  }catch(e){
+    hideTyping();addMessage('jarvis','Bağlantı hatası, Bay Stark. Hata: '+e.message);
+    console.error(e);
   }
-
-  animateWave(false);
-  isBusy = false;
+  animateWave(false);isBusy=false;
 }
 
-function sendText() {
-  const inp = document.getElementById('textInput');
-  const val = inp.value.trim();
-  if(!val) return;
-  inp.value = '';
-  sendMessage(val);
-}
+function sendText(){const i=document.getElementById('textInput');const v=i.value.trim();if(!v)return;i.value='';sendMessage(v);}
+function quickCmd(c){sendMessage(c);}
+document.getElementById('textInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendText();});
+document.getElementById('arcBtn').addEventListener('click',toggleMic);
 
-function quickCmd(cmd) { sendMessage(cmd); }
-
-document.getElementById('textInput').addEventListener('keydown', e => {
-  if(e.key === 'Enter') sendText();
-});
-
-// Arc reactor click = mic
-document.getElementById('arcBtn').addEventListener('click', toggleMic);
-
-// ==================== SPEECH RECOGNITION ====================
-let recognition = null;
-let isListening = false;
-
-function toggleMic() {
-  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    addMessage('jarvis', 'Ses tanıma bu tarayıcıda desteklenmiyor. Lütfen metin girin, Bay Stark.');
-    return;
-  }
-
-  if(isListening) {
-    recognition && recognition.stop();
-    return;
-  }
-
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SR();
-  recognition.lang = 'tr-TR';
-  recognition.continuous = false;
-  recognition.interimResults = false;
-
-  recognition.onstart = () => {
-    isListening = true;
-    document.getElementById('micBtn').classList.add('listening');
-    document.getElementById('micBtn').textContent = '🔴';
-    animateWave(true);
-  };
-
-  recognition.onresult = (e) => {
-    const transcript = e.results[0][0].transcript;
-    document.getElementById('textInput').value = transcript;
-    sendText();
-  };
-
-  recognition.onerror = recognition.onend = () => {
-    isListening = false;
-    document.getElementById('micBtn').classList.remove('listening');
-    document.getElementById('micBtn').textContent = '🎙';
-    if(!isBusy) animateWave(false);
-  };
-
+// Speech Recognition
+let recognition=null,isListening=false;
+function toggleMic(){
+  if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){addMessage('jarvis','Ses tanıma bu tarayıcıda desteklenmiyor, Bay Stark.');return;}
+  if(isListening){recognition&&recognition.stop();return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.lang='tr-TR';recognition.continuous=false;recognition.interimResults=false;
+  recognition.onstart=()=>{isListening=true;document.getElementById('micBtn').classList.add('listening');document.getElementById('micBtn').textContent='🔴';animateWave(true);};
+  recognition.onresult=e=>{const t=e.results[0][0].transcript;document.getElementById('textInput').value=t;sendText();};
+  recognition.onerror=recognition.onend=()=>{isListening=false;document.getElementById('micBtn').classList.remove('listening');document.getElementById('micBtn').textContent='🎙';if(!isBusy)animateWave(false);};
   recognition.start();
 }
 
-// ==================== SPEECH SYNTHESIS ====================
-function speakText(text) {
-  if(!('speechSynthesis' in window)) return;
+// TTS
+function speakText(text){
+  if(!('speechSynthesis'in window))return;
   window.speechSynthesis.cancel();
-
-  // Clean markdown-style artifacts
-  const clean = text.replace(/[*#◈]/g, '').replace(/\n/g, ' ').substring(0, 400);
-
-  const utterance = new SpeechSynthesisUtterance(clean);
-  utterance.lang = 'tr-TR';
-  utterance.rate = 0.95;
-  utterance.pitch = 0.85;
-
-  // Try to find a good voice
-  const voices = window.speechSynthesis.getVoices();
-  const trVoice = voices.find(v => v.lang.startsWith('tr'));
-  if(trVoice) utterance.voice = trVoice;
-
-  utterance.onstart = () => animateWave(true);
-  utterance.onend = () => animateWave(false);
-
-  window.speechSynthesis.speak(utterance);
+  const clean=text.replace(/[*#◈]/g,'').replace(/\n/g,' ').substring(0,400);
+  const u=new SpeechSynthesisUtterance(clean);u.lang='tr-TR';u.rate=0.95;u.pitch=0.85;
+  const voices=window.speechSynthesis.getVoices();
+  const trV=voices.find(v=>v.lang.startsWith('tr'));if(trV)u.voice=trV;
+  u.onstart=()=>animateWave(true);u.onend=()=>animateWave(false);
+  window.speechSynthesis.speak(u);
 }
+window.speechSynthesis&&window.speechSynthesis.getVoices();
+window.addEventListener('load',()=>{if(window.speechSynthesis){window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();}});
 
-// Load voices on mobile
-window.speechSynthesis && window.speechSynthesis.getVoices();
-window.addEventListener('load', () => {
-  if(window.speechSynthesis) {
-    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-  }
-});
-
-// ==================== AUTO GREETING ====================
-setTimeout(() => {
-  const hour = new Date().getHours();
-  let greeting = hour < 12 ? 'Günaydın' : hour < 18 ? 'İyi günler' : 'İyi akşamlar';
-  sendMessage(`${greeting} JARVIS, sistemleri kontrol eder misin?`);
-}, 800);
+// Greeting
+setTimeout(()=>sendMessage("Günaydın JARVIS, sistemleri kontrol eder misin?"),800);
 </script>
 </body>
 </html>
